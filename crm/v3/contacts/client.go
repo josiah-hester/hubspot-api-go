@@ -122,7 +122,7 @@ func (c *Client) ListContacts(ctx context.Context, opts ...ListContactsOption) (
 	}
 
 	var listResp struct {
-		Results []ContactResponse `json:"results"`
+		Results []Contact `json:"results"`
 		Paging  struct {
 			Next struct {
 				After string `json:"after"`
@@ -135,14 +135,5 @@ func (c *Client) ListContacts(ctx context.Context, opts ...ListContactsOption) (
 		return nil, "", fmt.Errorf("failed to unmarshal contacts list response: %w", err)
 	}
 
-	contacts := make([]Contact, len(listResp.Results))
-	for i, cr := range listResp.Results {
-		contacts[i] = Contact{
-			ID:         cr.ID,
-			Properties: cr.Properties,
-			Archived:   cr.Archived,
-		}
-	}
-
-	return contacts, listResp.Paging.Next.After, nil
+	return listResp.Results, listResp.Paging.Next.After, nil
 }

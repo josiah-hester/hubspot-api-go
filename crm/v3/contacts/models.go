@@ -1,13 +1,11 @@
 package contacts
 
-import "time"
-
 // Contact represents a HubSpot contact object
 type Contact struct {
 	ID         string         `json:"id"`
 	Properties map[string]any `json:"properties"`
-	CreatedAt  time.Time      `json:"createdAt"`
-	UpdatedAt  time.Time      `json:"updatedAt"`
+	CreatedAt  string         `json:"createdAt"`
+	UpdatedAt  string         `json:"updatedAt"`
 	Archived   bool           `json:"archived"`
 }
 
@@ -44,4 +42,3 @@ type BatchReadContactsInput struct {
 		ID string `json:"id"`
 	} `json:"inputs"`
 }
-
