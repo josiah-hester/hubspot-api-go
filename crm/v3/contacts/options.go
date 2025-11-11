@@ -1,6 +1,7 @@
 package contacts
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/josiah-hester/go-hubspot-sdk/client"
@@ -43,7 +44,7 @@ type ListContactsOption func(*client.Request)
 // WithLimit sets the maximum number of contacts to return
 func WithLimit(limit int) ListContactsOption {
 	return func(req *client.Request) {
-		req.AddQueryParam("limit", string(rune(limit)))
+		req.AddQueryParam("limit", fmt.Sprintf("%d", limit))
 	}
 }
 

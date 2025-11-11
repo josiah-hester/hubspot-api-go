@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>contacts: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/josiah-hester/go-hubspot-sdk/crm/v3/contacts/client.go (94.4%)</option>
+				
+				<option value="file1">github.com/josiah-hester/go-hubspot-sdk/crm/v3/contacts/errors.go (60.0%)</option>
+				
+				<option value="file2">github.com/josiah-hester/go-hubspot-sdk/crm/v3/contacts/options.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Package contacts specifies the client methods for the HubSpot CRM Contacts API
+package contacts
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+
+        "github.com/josiah-hester/go-hubspot-sdk/client"
+)
+
+type Client struct {
+        apiClient *client.Client
+}
+
+// NewClient creates a new contacts client
+func NewClient(apiClient *client.Client) *Client <span class="cov8" title="1">{
+        return &amp;Client{
+                apiClient: apiClient,
+        }
+}</span>
+
+func (c *Client) GetContact(ctx context.Context, contactID string, opts ...GetContactOption) (*Contact, error) <span class="cov8" title="1">{
+        req := client.NewRequest("GET", fmt.Sprintf("/crm/v3/objects/contacts/%s", contactID))
+        req.WithContext(ctx)
+        req.WithResourceType("contacts")
+
+        // Apply options
+        for _, opt := range opts </span><span class="cov8" title="1">{
+                opt(req)
+        }</span>
+
+        <span class="cov8" title="1">resp, err := c.apiClient.Do(ctx, req)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, ParseContactError(err, contactID)
+        }</span>
+
+        <span class="cov8" title="1">var contact ContactResponse
+        if err := json.Unmarshal(resp.Body, &amp;contact); err != nil </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("failed to unmarshal contact response: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;Contact{
+                ID:         contact.ID,
+                Properties: contact.Properties,
+                Archived:   contact.Archived,
+        }, nil</span>
+}
+
+func (c *Client) CreateContact(ctx context.Context, input *CreateContactInput) (*Contact, error) <span class="cov8" title="1">{
+        req := client.NewRequest("POST", "/crm/v3/objects/contacts")
+        req.WithContext(ctx)
+        req.WithResourceType("contacts")
+        req.WithBody(input)
+
+        resp, err := c.apiClient.Do(ctx, req)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, ParseContactError(err, "")
+        }</span>
+
+        <span class="cov8" title="1">var contact ContactResponse
+        if err := json.Unmarshal(resp.Body, &amp;contact); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to unmarshal contact response: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;Contact{
+                ID:         contact.ID,
+                Properties: contact.Properties,
+                Archived:   contact.Archived,
+        }, nil</span>
+}
+
+func (c *Client) UpdateContact(ctx context.Context, contactID string, input *UpdateContactInput) (*Contact, error) <span class="cov8" title="1">{
+        req := client.NewRequest("PATCH", fmt.Sprintf("/crm/v3/objects/contacts/%s", contactID))
+        req.WithContext(ctx)
+        req.WithResourceType("contacts")
+        req.WithBody(input)
+
+        resp, err := c.apiClient.Do(ctx, req)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, ParseContactError(err, contactID)
+        }</span>
+
+        <span class="cov8" title="1">var contact ContactResponse
+        if err := json.Unmarshal(resp.Body, &amp;contact); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to unmarshal contact response: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;Contact{
+                ID:         contact.ID,
+                Properties: contact.Properties,
+                Archived:   contact.Archived,
+        }, nil</span>
+}
+
+func (c *Client) DeleteContact(ctx context.Context, contactID string) error <span class="cov8" title="1">{
+        req := client.NewRequest("DELETE", fmt.Sprintf("/crm/v3/objects/contacts/%s", contactID))
+        req.WithContext(ctx)
+        req.WithResourceType("contacts")
+
+        _, err := c.apiClient.Do(ctx, req)
+        if err != nil </span><span class="cov8" title="1">{
+                return ParseContactError(err, contactID)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (c *Client) ListContacts(ctx context.Context, opts ...ListContactsOption) ([]Contact, string, error) <span class="cov8" title="1">{
+        req := client.NewRequest("GET", "/crm/v3/objects/contacts")
+        req.WithContext(ctx)
+        req.WithResourceType("contacts")
+
+        // Apply options
+        for _, opt := range opts </span><span class="cov8" title="1">{
+                opt(req)
+        }</span>
+
+        <span class="cov8" title="1">resp, err := c.apiClient.Do(ctx, req)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, "", err
+        }</span>
+
+        <span class="cov8" title="1">var listResp struct {
+                Results []Contact `json:"results"`
+                Paging  struct {
+                        Next struct {
+                                After string `json:"after"`
+                                Link  string `json:"link"`
+                        } `json:"next"`
+                } `json:"paging"`
+        }
+
+        if err := json.Unmarshal(resp.Body, &amp;listResp); err != nil </span><span class="cov8" title="1">{
+                return nil, "", fmt.Errorf("failed to unmarshal contacts list response: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return listResp.Results, listResp.Paging.Next.After, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package contacts
+
+import (
+        "fmt"
+
+        "github.com/josiah-hester/go-hubspot-sdk/client"
+)
+
+// ContactNotFoundError is returned when a contact is not found
+type ContactNotFoundError struct {
+        ContactID string
+        Original  *client.HubSpotError
+}
+
+func (e *ContactNotFoundError) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("contact %s not found", e.ContactID)
+}</span>
+
+// ContactValidationError is returned on validation failures
+type ContactValidationError struct {
+        Field    string
+        Message  string
+        Original *client.HubSpotError
+}
+
+func (e *ContactValidationError) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("validation error on field %s: %s", e.Field, e.Message)
+}</span>
+
+// ContactAlreadyExistsError is returned when trying to create a duplicate
+type ContactAlreadyExistsError struct {
+        ContactID string
+        Original  *client.HubSpotError
+}
+
+func (e *ContactAlreadyExistsError) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("contact with email %s already exists", e.ContactID)
+}</span>
+
+// ParseContactError converts a generic HubSpot error to a contact-specific error
+func ParseContactError(err error, contactID string) error <span class="cov8" title="1">{
+        if hubspotErr, ok := err.(*client.HubSpotError); ok </span><span class="cov8" title="1">{
+                switch hubspotErr.Status </span>{
+                case 404:<span class="cov8" title="1">
+                        return &amp;ContactNotFoundError{
+                                ContactID: contactID,
+                                Original:  hubspotErr,
+                        }</span>
+                case 400:<span class="cov8" title="1">
+                        if hubspotErr.Category == "VALIDATION_ERROR" </span><span class="cov8" title="1">{
+                                return &amp;ContactValidationError{
+                                        Field:    hubspotErr.Message,
+                                        Original: hubspotErr,
+                                }
+                        }</span>
+                case 409:<span class="cov8" title="1">
+                        return &amp;ContactAlreadyExistsError{
+                                Original: hubspotErr,
+                        }</span>
+                }
+        }
+        <span class="cov0" title="0">return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package contacts
+
+import (
+        "fmt"
+        "strings"
+
+        "github.com/josiah-hester/go-hubspot-sdk/client"
+)
+
+// GetContactOption is a functional option for GetContact
+type GetContactOption func(*client.Request)
+
+// WithProperties specifies which properties to retrieve
+func WithProperties(properties []string) GetContactOption <span class="cov8" title="1">{
+        return func(req *client.Request) </span><span class="cov8" title="1">{
+                req.AddQueryParam("properties", strings.Join(properties, ","))
+        }</span>
+}
+
+// WithAssociations specifies which associations to retrieve
+func WithAssociations(associations []string) GetContactOption <span class="cov8" title="1">{
+        return func(req *client.Request) </span><span class="cov8" title="1">{
+                req.AddQueryParam("associations", strings.Join(associations, ","))
+        }</span>
+}
+
+// WithIDProperty specifies the property to use as the contact identifier
+func WithIDProperty(property string) GetContactOption <span class="cov8" title="1">{
+        return func(req *client.Request) </span><span class="cov8" title="1">{
+                req.AddQueryParam("idProperty", property)
+        }</span>
+}
+
+// WithArchived includes archived contacts in results
+func WithArchived() GetContactOption <span class="cov8" title="1">{
+        return func(req *client.Request) </span><span class="cov8" title="1">{
+                req.AddQueryParam("archived", "true")
+        }</span>
+}
+
+// ListContactsOption is a functional option for ListContacts
+type ListContactsOption func(*client.Request)
+
+// WithLimit sets the maximum number of contacts to return
+func WithLimit(limit int) ListContactsOption <span class="cov8" title="1">{
+        return func(req *client.Request) </span><span class="cov8" title="1">{
+                req.AddQueryParam("limit", fmt.Sprintf("%d", limit))
+        }</span>
+}
+
+// WithAfter sets the pagination cursor
+func WithAfter(after string) ListContactsOption <span class="cov8" title="1">{
+        return func(req *client.Request) </span><span class="cov8" title="1">{
+                req.AddQueryParam("after", after)
+        }</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
