@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -193,16 +194,11 @@ func (c *Client) httpMiddleware() Handler {
 
 		// Add query parameters
 		if len(req.QueryParams) > 0 {
-			params := ""
-			first := true
+			values := url.Values{}
 			for k, v := range req.QueryParams {
-				if !first {
-					params += "&"
-				}
-				params += fmt.Sprintf("%s=%s", k, v)
-				first = false
+				values.Add(k, v)
 			}
-			fullURL += "?" + params
+			fullURL += "?" + values.Encode()
 		}
 
 		// Prepare request body
@@ -274,7 +270,12 @@ func readResponseBody(httpResp *http.Response) ([]byte, error) {
 	defer httpResp.Body.Close()
 
 	// Read all body content
-	bodyBytes := make([]byte, 0, httpResp.ContentLength)
+	// Use 0 capacity if ContentLength is unknown (-1) or negative
+	capacity := httpResp.ContentLength
+	if capacity < 0 {
+		capacity = 0
+	}
+	bodyBytes := make([]byte, 0, capacity)
 
 	// Use a temporary buffer to read
 	tmpBuffer := make([]byte, 4096)
