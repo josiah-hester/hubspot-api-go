@@ -1,6 +1,7 @@
 package tickets
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/josiah-hester/go-hubspot-sdk/client"
@@ -11,7 +12,7 @@ type TicketOption func(*client.Request)
 // WithLimit sets the maximum number of tickets to return
 func WithLimit(limit int) TicketOption {
 	return func(req *client.Request) {
-		req.AddQueryParam("limit", string(rune(limit)))
+		req.AddQueryParam("limit", fmt.Sprintf("%d", limit))
 	}
 }
 

@@ -127,7 +127,7 @@ type BatchTicketsResponse struct {
 }
 
 func (batch *BatchTicketsResponse) HasErrors() bool {
-	return len(batch.Errors) == 0
+	return len(batch.Errors) > 0
 }
 
 func (batch *BatchTicketsResponse) GetErrors() []error {

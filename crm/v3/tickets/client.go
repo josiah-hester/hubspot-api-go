@@ -3,6 +3,7 @@ package tickets
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/josiah-hester/go-hubspot-sdk/client"
@@ -46,7 +47,7 @@ func (c *Client) ListTickets(ctx context.Context, opts ...TicketOption) (*ListTi
 	}
 
 	var tickets ListTicketsResponse
-	if err := tools.NewRequiredTagStruct(tickets).UnmarhsalJSON(resp.Body); err != nil {
+	if err := json.Unmarshal(resp.Body, &tickets); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal tickets response: %w", err)
 	}
 
@@ -70,7 +71,7 @@ func (c *Client) CreateTicket(ctx context.Context, input *CreateTicketInput) (*C
 	}
 
 	var ticket CreateTicketResponse
-	if err := tools.NewRequiredTagStruct(ticket).UnmarhsalJSON(resp.Body); err != nil {
+	if err := json.Unmarshal(resp.Body, &ticket); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal ticket response: %w", err)
 	}
 
@@ -100,7 +101,7 @@ func (c *Client) ReadTicket(ctx context.Context, ticketID string, opts ...Ticket
 	}
 
 	var ticket Ticket
-	if err := tools.NewRequiredTagStruct(ticket).UnmarhsalJSON(resp.Body); err != nil {
+	if err := json.Unmarshal(resp.Body, &ticket); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal ticket response: %w", err)
 	}
 
@@ -127,7 +128,7 @@ func (c *Client) UpdateTicket(ctx context.Context, ticketID string, input *Updat
 	}
 
 	var ticket Ticket
-	if err := tools.NewRequiredTagStruct(ticket).UnmarhsalJSON(resp.Body); err != nil {
+	if err := json.Unmarshal(resp.Body, &ticket); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal ticket response: %w", err)
 	}
 
@@ -161,7 +162,7 @@ func (c *Client) MergeTwoTickets(ctx context.Context, input *MergeTwoTicketsInpu
 	}
 
 	var ticket Ticket
-	if err := tools.NewRequiredTagStruct(ticket).UnmarhsalJSON(resp.Body); err != nil {
+	if err := json.Unmarshal(resp.Body, &ticket); err != nil {
 		return fmt.Errorf("failed to unmarshal ticket response: %w", err)
 	}
 
@@ -190,7 +191,7 @@ func (c *Client) BatchReadTickets(ctx context.Context, input *BatchReadTicketsIn
 	}
 
 	var obj BatchTicketsResponse
-	if err := tools.NewRequiredTagStruct(obj).UnmarhsalJSON(resp.Body); err != nil {
+	if err := tools.NewRequiredTagStruct(&obj).UnmarhsalJSON(resp.Body); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal batch tickets response: %w", err)
 	}
 
@@ -210,7 +211,7 @@ func (c *Client) BatchCreateTickets(ctx context.Context, input *BatchCreateTicke
 	}
 
 	var obj BatchTicketsResponse
-	if err := tools.NewRequiredTagStruct(obj).UnmarhsalJSON(resp.Body); err != nil {
+	if err := tools.NewRequiredTagStruct(&obj).UnmarhsalJSON(resp.Body); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal batch tickets response: %w", err)
 	}
 
@@ -230,7 +231,7 @@ func (c *Client) BatchUpdateTickets(ctx context.Context, input *BatchUpdateTicke
 	}
 
 	var obj BatchTicketsResponse
-	if err := tools.NewRequiredTagStruct(obj).UnmarhsalJSON(resp.Body); err != nil {
+	if err := tools.NewRequiredTagStruct(&obj).UnmarhsalJSON(resp.Body); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal batch tickets response: %w", err)
 	}
 
@@ -250,7 +251,7 @@ func (c *Client) BatchCreateOrUpdateTickets(ctx context.Context, input *BatchCre
 	}
 
 	var obj BatchTicketsResponse
-	if err := tools.NewRequiredTagStruct(obj).UnmarhsalJSON(resp.Body); err != nil {
+	if err := tools.NewRequiredTagStruct(&obj).UnmarhsalJSON(resp.Body); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal batch tickets response: %w", err)
 	}
 
@@ -270,7 +271,7 @@ func (c *Client) BatchArchiveTickets(ctx context.Context, input *BatchArchiveTic
 	}
 
 	var obj BatchTicketsResponse
-	if err := tools.NewRequiredTagStruct(obj).UnmarhsalJSON(resp.Body); err != nil {
+	if err := tools.NewRequiredTagStruct(&obj).UnmarhsalJSON(resp.Body); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal batch tickets response: %w", err)
 	}
 
@@ -292,7 +293,7 @@ func (c *Client) SearchTickets(ctx context.Context, input *SearchTicketsInput) (
 	}
 
 	var search SearchTicketsResponse
-	if err := tools.NewRequiredTagStruct(search).UnmarhsalJSON(resp.Body); err != nil {
+	if err := tools.NewRequiredTagStruct(&search).UnmarhsalJSON(resp.Body); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal search response: %w", err)
 	}
 
