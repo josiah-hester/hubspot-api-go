@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"math/rand"
 	"net/http"
@@ -20,6 +21,7 @@ type Client struct {
 	config      *Config
 	httpClient  *http.Client
 	rateLimiter *RateLimiter
+	logger      *Logger
 }
 
 // Handler represents a function that processes a Request and returns a Response
@@ -43,10 +45,14 @@ func NewClient(opts ...Option) (*Client, error) {
 	// Create rate limiter
 	rateLimiter := NewRateLimiter(cfg.RateLimit.MaxBurst)
 
+	// Initialize the logger
+	logger := NewLogger(cfg.Logging.Enabled, "go_hubspot_sdk_client:", log.LstdFlags|log.Lshortfile, cfg.Logging.Outputs...)
+
 	return &Client{
 		config:      cfg,
 		httpClient:  httpClient,
 		rateLimiter: rateLimiter,
+		logger:      logger,
 	}, nil
 }
 
@@ -227,6 +233,9 @@ func (c *Client) httpMiddleware() Handler {
 		// Set default headers
 		httpReq.Header.Set("User-Agent", "go-hubspot-sdk/1.0")
 
+		c.logger.Printf("Request Headers: %v", httpReq.Header)
+		c.logger.Printf("Making request: %s %s", req.Method, fullURL)
+
 		// Perform request
 		httpResp, err := c.httpClient.Do(httpReq)
 		if err != nil {
@@ -243,6 +252,8 @@ func (c *Client) httpMiddleware() Handler {
 		// Create response wrapper
 		resp := NewResponse(httpResp.StatusCode, respBodyBytes, httpResp.Header)
 		resp.RateLimit = ExtractRateLimitInfo(httpResp.Header)
+
+		c.logger.Printf("Rate Limit: %v", resp.RateLimit)
 
 		// Handle error responses
 		if httpResp.StatusCode >= 400 {

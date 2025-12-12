@@ -1,6 +1,10 @@
 package client
 
-import "time"
+import (
+	"io"
+	"os"
+	"time"
+)
 
 // Config holds all configuration for the HubSpot API client
 type Config struct {
@@ -9,6 +13,7 @@ type Config struct {
 	Timeout     time.Duration
 	RateLimit   RateLimitConfig
 	Retry       RetryConfig
+	Logging     Logging
 }
 
 // RateLimitConfig configures rate limiting behavior
@@ -24,6 +29,11 @@ type RetryConfig struct {
 	InitialBackoff time.Duration
 	MaxBackoff     time.Duration
 	Enabled        bool
+}
+
+type Logging struct {
+	Outputs []io.Writer
+	Enabled bool
 }
 
 // Option is a functional option for configuring the Client
@@ -44,6 +54,10 @@ func NewConfig() *Config {
 			InitialBackoff: 1 * time.Second,
 			MaxBackoff:     30 * time.Second,
 			Enabled:        true,
+		},
+		Logging: Logging{
+			Outputs: []io.Writer{os.Stdout},
+			Enabled: false,
 		},
 	}
 }
@@ -117,6 +131,16 @@ func WithRetryBackoff(initial, max time.Duration) Option {
 	return func(cfg *Config) error {
 		cfg.Retry.InitialBackoff = initial
 		cfg.Retry.MaxBackoff = max
+		return nil
+	}
+}
+
+func WithLogging(enabled bool, outputs ...io.Writer) Option {
+	return func(cfg *Config) error {
+		if len(outputs) > 0 {
+			cfg.Logging.Outputs = outputs
+		}
+		cfg.Logging.Enabled = enabled
 		return nil
 	}
 }
