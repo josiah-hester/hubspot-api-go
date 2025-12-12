@@ -8,13 +8,12 @@ import (
 
 type Logger struct {
 	loggers []*log.Logger
-	enabled bool
 }
 
 // NewLogger creates a new \[Logger]. The outputs variable sets the destinations to which log data will be written. The prefix appears at the beginning of each generated log line, or after the log header if the \[Lmsgprefix] flag is provided. The flag argument defines the logging properties.
 func NewLogger(enabled bool, prefix string, flag int, outputs ...io.Writer) *Logger {
 	if !enabled {
-		return &Logger{loggers: nil, enabled: false}
+		return &Logger{loggers: nil}
 	}
 	if len(outputs) > 0 {
 		loggers := make([]*log.Logger, len(outputs))
@@ -30,41 +29,31 @@ func NewLogger(enabled bool, prefix string, flag int, outputs ...io.Writer) *Log
 }
 
 func (l *Logger) Printf(format string, v ...any) {
-	if l.enabled {
-		for _, logger := range l.loggers {
-			logger.Printf(format, v...)
-		}
+	for _, logger := range l.loggers {
+		logger.Printf(format, v...)
 	}
 }
 
 func (l *Logger) Println(v ...any) {
-	if l.enabled {
-		for _, logger := range l.loggers {
-			logger.Println(v...)
-		}
+	for _, logger := range l.loggers {
+		logger.Println(v...)
 	}
 }
 
 func (l *Logger) Print(v ...any) {
-	if l.enabled {
-		for _, logger := range l.loggers {
-			logger.Print(v...)
-		}
+	for _, logger := range l.loggers {
+		logger.Print(v...)
 	}
 }
 
 func (l *Logger) Fatal(v ...any) {
-	if l.enabled {
-		for _, logger := range l.loggers {
-			logger.Fatal(v...)
-		}
+	for _, logger := range l.loggers {
+		logger.Fatal(v...)
 	}
 }
 
 func (l *Logger) Fatalf(format string, v ...any) {
-	if l.enabled {
-		for _, logger := range l.loggers {
-			logger.Fatalf(format, v...)
-		}
+	for _, logger := range l.loggers {
+		logger.Fatalf(format, v...)
 	}
 }

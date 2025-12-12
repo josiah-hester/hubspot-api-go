@@ -46,7 +46,7 @@ func NewClient(opts ...Option) (*Client, error) {
 	rateLimiter := NewRateLimiter(cfg.RateLimit.MaxBurst)
 
 	// Initialize the logger
-	logger := NewLogger(cfg.Logging.Enabled, "go_hubspot_sdk_client:", log.LstdFlags|log.Lshortfile, cfg.Logging.Outputs...)
+	logger := NewLogger(cfg.LoggingEnabled, "go_hubspot_sdk_client:", log.LstdFlags|log.Lshortfile, cfg.LogOutputs...)
 
 	return &Client{
 		config:      cfg,
@@ -56,7 +56,6 @@ func NewClient(opts ...Option) (*Client, error) {
 	}, nil
 }
 
-// Do executes an API request with middleware chain
 func (c *Client) Do(ctx context.Context, req *Request) (*Response, error) {
 	req.Context = ctx
 
@@ -233,8 +232,8 @@ func (c *Client) httpMiddleware() Handler {
 		// Set default headers
 		httpReq.Header.Set("User-Agent", "go-hubspot-sdk/1.0")
 
-		c.logger.Printf("Request Headers: %v", httpReq.Header)
-		c.logger.Printf("Making request: %s %s", req.Method, fullURL)
+		c.LogPrintf("Request Headers: %v", httpReq.Header)
+		c.LogPrintf("Making request: %s %s", req.Method, fullURL)
 
 		// Perform request
 		httpResp, err := c.httpClient.Do(httpReq)
@@ -253,7 +252,7 @@ func (c *Client) httpMiddleware() Handler {
 		resp := NewResponse(httpResp.StatusCode, respBodyBytes, httpResp.Header)
 		resp.RateLimit = ExtractRateLimitInfo(httpResp.Header)
 
-		c.logger.Printf("Rate Limit: %v", resp.RateLimit)
+		c.LogPrintf("Rate Limit: %v", resp.RateLimit)
 
 		// Handle error responses
 		if httpResp.StatusCode >= 400 {
@@ -262,6 +261,12 @@ func (c *Client) httpMiddleware() Handler {
 		}
 
 		return resp, nil
+	}
+}
+
+func (c *Client) LogPrintf(format string, v ...any) {
+	if c.config.LoggingEnabled {
+		c.logger.Printf(format, v...)
 	}
 }
 
