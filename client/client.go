@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"math"
 	"math/rand"
 	"net/http"
@@ -21,7 +21,7 @@ type Client struct {
 	config      *Config
 	httpClient  *http.Client
 	rateLimiter *RateLimiter
-	logger      *Logger
+	logger      *slog.Logger
 }
 
 // Handler represents a function that processes a Request and returns a Response
@@ -45,14 +45,11 @@ func NewClient(opts ...Option) (*Client, error) {
 	// Create rate limiter
 	rateLimiter := NewRateLimiter(cfg.RateLimit.MaxBurst)
 
-	// Initialize the logger
-	logger := NewLogger(cfg.LoggingEnabled, "GoHubspotSDK-", log.LstdFlags|log.Lshortfile, cfg.LogOutputs...)
-
 	return &Client{
 		config:      cfg,
 		httpClient:  httpClient,
 		rateLimiter: rateLimiter,
-		logger:      logger,
+		logger:      cfg.Logger,
 	}, nil
 }
 
@@ -212,6 +209,7 @@ func (c *Client) httpMiddleware() Handler {
 		if req.Body != nil {
 			bodyBytes, err := marshalRequestBody(req.Body)
 			if err != nil {
+				c.logger.Error("Failed to marshal request body", "Error", err)
 				return nil, fmt.Errorf("failed to marshal request body: %w", err)
 			}
 			bodyReader = bytes.NewReader(bodyBytes)
@@ -221,6 +219,7 @@ func (c *Client) httpMiddleware() Handler {
 		// Create HTTP request
 		httpReq, err := http.NewRequestWithContext(req.Context, req.Method, fullURL, bodyReader)
 		if err != nil {
+			c.logger.Error("Failed to create request", "Error", err)
 			return nil, fmt.Errorf("failed to create request: %w", err)
 		}
 
@@ -232,19 +231,25 @@ func (c *Client) httpMiddleware() Handler {
 		// Set default headers
 		httpReq.Header.Set("User-Agent", "go-hubspot-sdk/1.0")
 
-		c.LogPrintf("Request Headers: %v", httpReq.Header)
-		c.LogPrintf("Making request: %s %s", req.Method, fullURL)
+		c.logger.Debug("Making API Request!", slog.Group("Request Data", "Request Method", req.Method, "Request URL", fullURL, "Request Headers", httpReq.Header))
 
 		// Perform request
 		httpResp, err := c.httpClient.Do(httpReq)
 		if err != nil {
+			c.logger.Error("HTTP request failed", "Error", err)
 			return nil, fmt.Errorf("HTTP request failed: %w", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() {
+			err = httpResp.Body.Close()
+			if err != nil {
+				c.logger.Error("Failed to close response body", "Error", err)
+			}
+		}()
 
 		// Read response body
 		respBodyBytes, err := readResponseBody(httpResp)
 		if err != nil {
+			c.logger.Error("Failed to read response body", "Error", err)
 			return nil, fmt.Errorf("failed to read response body: %w", err)
 		}
 
@@ -252,27 +257,16 @@ func (c *Client) httpMiddleware() Handler {
 		resp := NewResponse(httpResp.StatusCode, respBodyBytes, httpResp.Header)
 		resp.RateLimit = ExtractRateLimitInfo(httpResp.Header)
 
-		c.LogStructf("Rate Limit: %v", resp.RateLimit)
+		c.logger.Debug("Response Received!", "Response", *resp)
 
 		// Handle error responses
 		if httpResp.StatusCode >= 400 {
 			resp.HubSpotError = ParseHubSpotError(httpResp.StatusCode, respBodyBytes, httpResp.Header)
+			c.logger.Error("Error Response Received!", "Status Code", httpResp.StatusCode, "Error", resp.HubSpotError)
 			return resp, resp.HubSpotError
 		}
 
 		return resp, nil
-	}
-}
-
-func (c *Client) LogPrintf(format string, v ...any) {
-	if c.config.LoggingEnabled {
-		c.logger.Printf(format, v...)
-	}
-}
-
-func (c *Client) LogStructf(format string, v any) {
-	if c.config.LoggingEnabled {
-		c.logger.LogStructf(format, v)
 	}
 }
 
@@ -294,10 +288,7 @@ func readResponseBody(httpResp *http.Response) ([]byte, error) {
 
 	// Read all body content
 	// Use 0 capacity if ContentLength is unknown (-1) or negative
-	capacity := httpResp.ContentLength
-	if capacity < 0 {
-		capacity = 0
-	}
+	capacity := max(httpResp.ContentLength, 0)
 	bodyBytes := make([]byte, 0, capacity)
 
 	// Use a temporary buffer to read

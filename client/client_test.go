@@ -106,7 +106,7 @@ func TestClientDo_Success(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Equal(t, 200, resp.StatusCode)
-	assert.Equal(t, responseJSON, string(resp.Body))
+	assert.JSONEq(t, responseJSON, string(resp.Body))
 }
 
 // TestClientDo_WithBody tests POST request with body
@@ -117,7 +117,7 @@ func TestClientDo_WithBody(t *testing.T) {
 
 		var body map[string]string
 		err := json.NewDecoder(r.Body).Decode(&body)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, "test", body["key"])
 
 		respondJSON(w, http.StatusCreated, `{"success": true}`)
@@ -419,7 +419,7 @@ func TestMarshalRequestBody(t *testing.T) {
 		body := map[string]string{"key": "value"}
 		bytes, err := marshalRequestBody(body)
 		require.NoError(t, err)
-		assert.Equal(t, `{"key":"value"}`, string(bytes))
+		assert.JSONEq(t, `{"key":"value"}`, string(bytes))
 	})
 
 	t.Run("Byte slice", func(t *testing.T) {
@@ -474,7 +474,9 @@ func TestRequest(t *testing.T) {
 	})
 
 	t.Run("WithContext", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), "key", "value")
+		type Key string
+		var key Key = "test"
+		ctx := context.WithValue(context.Background(), key, "value")
 		req := NewRequest("GET", "/test").WithContext(ctx)
 		assert.Equal(t, ctx, req.Context)
 	})
