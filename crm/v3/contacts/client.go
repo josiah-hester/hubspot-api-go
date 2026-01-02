@@ -137,3 +137,22 @@ func (c *Client) ListContacts(ctx context.Context, opts ...ListContactsOption) (
 
 	return listResp.Results, listResp.Paging.Next.After, nil
 }
+
+func (c *Client) SearchContacts(ctx context.Context, input *SearchContactsInput) (*SearchContactsResponse, error) {
+	req := client.NewRequest("POST", "/crm/v3/objects/contacts/search")
+	req.WithContext(ctx)
+	req.WithResourceType("contacts")
+	req.WithBody(input)
+
+	resp, err := c.apiClient.Do(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var searchResp SearchContactsResponse
+	if err := json.Unmarshal(resp.Body, &searchResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal search response: %w", err)
+	}
+
+	return &searchResp, nil
+}

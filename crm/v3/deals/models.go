@@ -1,5 +1,23 @@
 package deals
 
+type FilterOperator string
+
+const (
+	EQ               FilterOperator = "EQ"
+	NEQ              FilterOperator = "NEQ"
+	LT               FilterOperator = "LT"
+	LTE              FilterOperator = "LTE"
+	GT               FilterOperator = "GT"
+	GTE              FilterOperator = "GTE"
+	Between          FilterOperator = "BETWEEN"
+	In               FilterOperator = "IN"
+	NotIn            FilterOperator = "NOT_IN"
+	HasProperty      FilterOperator = "HAS_PROPERTY"
+	NotHasProperty   FilterOperator = "NOT_HAS_PROPERTY"
+	ContainsToken    FilterOperator = "CONTAINS_TOKEN"
+	NotContainsToken FilterOperator = "NOT_CONTAINS_TOKEN"
+)
+
 // Deal represents a HubSpot deal object
 type Deal struct {
 	ID                    string                           `json:"id"`
